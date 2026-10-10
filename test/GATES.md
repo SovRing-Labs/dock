@@ -1,9 +1,3 @@
----
-title: Gate tests
-updated: 2026-10-05
-weaver_hash: 857cda34c11e5c6104b4602855eb7fae4c3928227022df4643941340a69dbeba
-weaver_imported: 2026-10-09T22:22:08+00:00
----
 # Gate tests
 
 Every claim dock makes that could be false, and the test that makes it true.
