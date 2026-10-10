@@ -1,0 +1,36 @@
+note: no capture given; using the pinned snapshot
+      fixtures/live-catalog-2026-10-05.json
+      for live state: node test/harness/codemode-probe.mjs /tmp/codemode-raw.json
+catalog: 20 live tools from sovereign-kernel + omnid
+
+  BASELINE RECALL (ordinary asks — stage 2 must not regress)
+    OK   read a file from disk              expect~read          stage1=hit  stage2=hit 
+    OK   search the vault for notes         expect~shard_search  stage1=hit  stage2=hit 
+    OK   write a note to disk               expect~write         stage1=hit  stage2=hit 
+    OK   find text across many files        expect~grep          stage1=hit  stage2=hit 
+    OK   fetch a url over http              expect~fetch         stage1=hit  stage2=hit 
+    OK   run a sql query                    expect~sql           stage1=hit  stage2=hit 
+    OK   record something in memory         expect~shard         stage1=hit  stage2=hit 
+    OK   show the dispatch board status     expect~board         stage1=hit  stage2=hit 
+
+    stage 1 8/8   stage 2 8/8
+  MORPH/SYNONYM RECALL (the asks stage 2 exists for)
+    OK   open a file                        expect~read          stage1=hit  stage2=hit 
+    OK   save a note                        expect~write         stage1=miss stage2=hit   <- stage 2 gained this
+    OK   reading a config file              expect~read          stage1=hit  stage2=hit 
+    OK   listings of files                  expect~glob          stage1=hit  stage2=hit 
+    OK   fetched documents                  expect~fetch         stage1=miss stage2=hit   <- stage 2 gained this
+
+    stage 1 3/5   stage 2 5/5
+
+  ABSTENTION (off-topic — it must still refuse)
+    OK   book me a flight to lisbon         stage1=refused stage2=refused
+    OK   what is the weather tomorrow       stage1=refused stage2=refused
+    OK   translate this into french         stage1=refused stage2=refused
+    OK   frobnicate the widget              stage1=refused stage2=refused
+    OK   order two pizzas                   stage1=refused stage2=refused
+
+    stage 1 leaked 0/5   stage 2 leaked 0/5
+
+  VERDICT
+    PASS  baseline held (+0), morph/synonym recall +2 (3->5/5), no new leakage (0/5).

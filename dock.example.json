@@ -1,0 +1,24 @@
+{
+  "upstreams": [
+    {
+      "name": "filesystem",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp/workspace"],
+      "env": {}
+    },
+    {
+      "name": "github",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "set-me"
+      }
+    },
+    {
+      "name": "sqlite",
+      "command": "uvx",
+      "args": ["mcp-server-sqlite", "--db-path", "/tmp/workspace/data.db"],
+      "env": {}
+    }
+  ]
+}

@@ -1,0 +1,1263 @@
+{
+ "probe": "codemode",
+ "protocolVersion": "2025-06-18",
+ "servers": [
+  {
+   "name": "sovereign-kernel",
+   "toolCount": 12,
+   "toolNames": [
+    "fleet_kb_search",
+    "fleet_exec",
+    "read",
+    "read_many",
+    "write",
+    "edit",
+    "grep",
+    "glob",
+    "bash",
+    "sql",
+    "web_fetch",
+    "board_query"
+   ],
+   "resourceCount": 0,
+   "templateCount": 0,
+   "capabilities": [],
+   "errors": {}
+  },
+  {
+   "name": "omnid",
+   "toolCount": 8,
+   "toolNames": [
+    "fleet_exec",
+    "embed",
+    "ring_heads",
+    "shard_search",
+    "arc",
+    "shard_put",
+    "mark",
+    "session_recall"
+   ],
+   "resourceCount": 0,
+   "templateCount": 0,
+   "capabilities": [],
+   "errors": {}
+  }
+ ],
+ "resourceServers": [],
+ "builtinTokenCost": null,
+ "mcpCounts": {
+  "naive": 20,
+  "current": 20,
+  "codemode": 3
+ },
+ "payloads": {
+  "naive": [
+   {
+    "name": "server_fleet_kb_search",
+    "description": "Runs `fleet-kb search <query>` against system-docs.db (local FTS5 documentation search).",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string",
+       "description": "Search query"
+      }
+     },
+     "required": [
+      "query"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "server_fleet_exec",
+    "description": "Batch file/shell/sql ops in one call through bin/fleet-exec (write scopes, audit, field marks). operations: [{type:'bash',command,timeout_s?} | {type:'read',path} | {type:'write',path,content} | {type:'patch',path,old_string,new_string} | {type:'sql',database,query,mode?}]. mode: 'parallel'|'sequential'.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "operations": {
+       "oneOf": [
+        {
+         "type": "array",
+         "minItems": 1,
+         "items": {
+          "type": "object",
+          "properties": {
+           "type": {
+            "type": "string",
+            "enum": [
+             "bash",
+             "read",
+             "write",
+             "patch",
+             "sql",
+             "db_exec",
+             "omni_sql",
+             "glob",
+             "grep",
+             "fix_json"
+            ],
+            "description": "Operation type \u2014 bash, read, write, patch, sql, glob (find files), grep (search contents)."
+           },
+           "pattern": {
+            "type": "string",
+            "description": "type=glob: glob like '**/*.py'; type=grep: regex."
+           },
+           "glob": {
+            "type": "string",
+            "description": "type=grep only: restrict to files matching this glob."
+           },
+           "allow_destructive": {
+            "type": "boolean",
+            "description": "Only when J approved it: lets an op the Omnitool guard blocks (rm -rf of protected root\u2026"
+           },
+           "command": {
+            "type": "string",
+            "description": "Shell command to execute (type=bash)."
+           },
+           "path": {
+            "type": "string",
+            "description": "File path (type=read/write)."
+           },
+           "content": {
+            "type": "string",
+            "description": "File content to write (type=write). Required. write/patch targets must be under ~/ai-st\u2026"
+           },
+           "diff": {
+            "type": "string",
+            "description": "Unified diff text (type=patch)."
+           },
+           "target": {
+            "type": "string",
+            "description": "Explicit patch target path (type=patch, optional). Defaults to the path implied by the \u2026"
+           },
+           "database": {
+            "type": "string",
+            "description": "DB alias or path (type=sql). Optional: defaults to \"dispatch\"."
+           },
+           "mode": {
+            "type": "string",
+            "enum": [
+             "read_only",
+             "read_write"
+            ],
+            "description": "SQL execution mode (default: read_only). Any INSERT/UPDATE/DELETE/DDL needs mode:\"read_\u2026"
+           },
+           "format": {
+            "type": "boolean",
+            "description": "type=write only: run the language formatter after writing (default false: bytes written\u2026"
+           },
+           "timeout_ms": {
+            "type": "number",
+            "description": "Per-operation timeout override in ms. Overrides payload-level timeout_s for this specif\u2026"
+           },
+           "detach": {
+            "type": "boolean",
+            "description": "type=bash only: fire-and-forget. Spawns via a detached process and returns immediately."
+           },
+           "log_path": {
+            "type": "string",
+            "description": "type=bash + detach/on_timeout=detach: where to redirect output (default: auto-named /tm\u2026"
+           },
+           "on_timeout": {
+            "type": "string",
+            "enum": [
+             "detach"
+            ],
+            "description": "type=bash only: if the command is still running at timeout_s, dont kill it \u2014 leave it r\u2026"
+           },
+           "on_failure": {
+            "type": "string",
+            "enum": [
+             "abort",
+             "continue"
+            ],
+            "description": "Per-operation failure policy. 'abort': a failure halts the remaining ops. 'continue' or\u2026"
+           }
+          },
+          "required": [
+           "type"
+          ],
+          "additionalProperties": true
+         }
+        },
+        {
+         "type": "object"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Array of operation objects, or single operation object."
+      },
+      "tasks": {
+       "type": "array",
+       "items": {
+        "type": "object"
+       },
+       "description": "Alias for operations (common model hallucination)."
+      },
+      "ops": {
+       "type": "array",
+       "items": {
+        "type": "object"
+       },
+       "description": "Alias for operations."
+      },
+      "commands": {
+       "type": "array",
+       "items": {
+        "type": "object"
+       },
+       "description": "Alias for operations."
+      },
+      "concurrency": {
+       "type": "string",
+       "enum": [
+        "parallel",
+        "sequential",
+        "auto"
+       ],
+       "description": "'parallel': all ops at once, no dependency checking. 'sequential': one at a time. 'auto\u2026"
+      },
+      "stop_on_error": {
+       "type": "boolean",
+       "description": "Sequential mode only: halt on first failure"
+      },
+      "detach": {
+       "type": "boolean",
+       "description": "Whole-batch background: run the ENTIRE operations list (in the given concurrency mode \u2014\u2026"
+      },
+      "log_path": {
+       "type": "string",
+       "description": "With top-level detach: where to redirect the whole batch's combined output (default: an\u2026"
+      },
+      "timeout_ms": {
+       "type": "number",
+       "description": "Overrides the outer transport timeout for this whole call (default 60000ms). Raise this\u2026"
+      }
+     },
+     "additionalProperties": true
+    }
+   },
+   {
+    "name": "server_read",
+    "description": "Read a file. Args: path (absolute), offset (line, default 0), max_lines (default 200). Returns {ok,data,error}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string"
+      },
+      "offset": {
+       "type": "number"
+      },
+      "max_lines": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "path"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "server_read_many",
+    "description": "Read several files in one call. Args: paths (array of absolute paths, max 20). Returns {ok,data:[{path,ok,content|error}]}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "paths": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      }
+     },
+     "required": [
+      "paths"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "server_write",
+    "description": "Create/overwrite a file (write-scoped: ai-stack, projects, Obsidian, .config/opencode, /tmp ...). Args: path, content. Returns {ok,data,error}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string"
+      },
+      "content": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "path",
+      "content"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "server_edit",
+    "description": "Replace old_string with new_string in a file. old_string must occur EXACTLY ONCE (else error, nothing written). Args: path, old_string, new_string.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string"
+      },
+      "old_string": {
+       "type": "string"
+      },
+      "new_string": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "path",
+      "old_string",
+      "new_string"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "server_grep",
+    "description": "Search file contents (ripgrep regex). Args: pattern, path (default ai-stack), glob (optional file filter like '*.py'). Returns {ok,data:'file:line:text' lines}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "pattern": {
+       "type": "string"
+      },
+      "path": {
+       "type": "string"
+      },
+      "glob": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "pattern"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "server_glob",
+    "description": "Find files by glob (ripgrep). Args: pattern (e.g. '**/*.py'), path (default ai-stack). Returns {ok,data:[paths]}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "pattern": {
+       "type": "string"
+      },
+      "path": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "pattern"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "server_bash",
+    "description": "Run one shell command via the omnitool. Args: command, timeout_s (default 30), cwd (optional). Returns {ok (exit 0), data:{exit_code,stdout,stderr}}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "command": {
+       "type": "string"
+      },
+      "timeout_s": {
+       "type": "number"
+      },
+      "cwd": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "command"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "server_sql",
+    "description": "Run SQL on a fleet SQLite db. Args: database (path), query, mode ('read_only' default | 'read_write'). Returns {ok,data:rows}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "database": {
+       "type": "string"
+      },
+      "query": {
+       "type": "string"
+      },
+      "mode": {
+       "type": "string",
+       "enum": [
+        "read_only",
+        "read_write"
+       ]
+      }
+     },
+     "required": [
+      "database",
+      "query"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "server_web_fetch",
+    "description": "Fetch a URL as text. Args: url. Returns {ok,data:text}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "url": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "url"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "server_board_query",
+    "description": "Query dispatch.db task queue: counts by status (staged/approved/needs_review/done), recent completions, and lane balance. Replaces manual sqlite3 queries on dispatch.db.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "detail": {
+       "type": "string",
+       "enum": [
+        "summary",
+        "full"
+       ],
+       "default": "summary"
+      },
+      "limit": {
+       "type": "number",
+       "default": 5,
+       "description": "Max tasks to return in summary mode"
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "server_fleet_exec",
+    "description": "Run bin/fleet-exec (the omnitool): a batch of bash/read/write/patch/sql/glob/grep operations, validated whole before anything runs. Input: {operations:[{type:'bash',command:'...'}, ...]}.",
+    "input_schema": {
+     "properties": {
+      "concurrency": {
+       "enum": [
+        "auto",
+        "parallel",
+        "sequential"
+       ],
+       "type": "string"
+      },
+      "cwd": {
+       "type": "string"
+      },
+      "operations": {
+       "items": {
+        "type": "object"
+       },
+       "type": "array"
+      }
+     },
+     "required": [
+      "operations"
+     ],
+     "type": "object"
+    }
+   },
+   {
+    "name": "server_embed",
+    "description": "Local text embeddings (no cloud): nomic-embed-text v1.5 (768-d) or BitNet-embedding-270M (640-d).",
+    "input_schema": {
+     "properties": {
+      "kind": {
+       "enum": [
+        "document",
+        "query",
+        "raw"
+       ],
+       "type": "string"
+      },
+      "model": {
+       "enum": [
+        "nomic",
+        "bitnet270m"
+       ],
+       "type": "string"
+      },
+      "texts": {
+       "items": {
+        "type": "string"
+       },
+       "type": "array"
+      }
+     },
+     "required": [
+      "texts"
+     ],
+     "type": "object"
+    }
+   },
+   {
+    "name": "server_ring_heads",
+    "description": "Query the fleet's ring heads (ring_headd): {health:true} | {heads:true} | {head, text|texts}.",
+    "input_schema": {
+     "type": "object"
+    }
+   },
+   {
+    "name": "server_shard_search",
+    "description": "Search the fleet's memory (Claude Code sessions, the vault, stored notes): full-text + local nomic vectors, fused; every hit names its store, id and source. Input: {q, stores?:['sessions','vault','notes'], k?}.",
+    "input_schema": {
+     "properties": {
+      "k": {
+       "type": "integer"
+      },
+      "q": {
+       "type": "string"
+      },
+      "stores": {
+       "items": {
+        "type": "string"
+       },
+       "type": "array"
+      }
+     },
+     "required": [
+      "q"
+     ],
+     "type": "object"
+    }
+   },
+   {
+    "name": "server_arc",
+    "description": "The arc reactor (ARC stage F): exact engines (every reasoning generator), independent judges, pages and receipts. Input: {op: solve|verify|catalog|page_get|page_put|address|decode|ping, ...}: solve {domain, problem? | i, seed, level} \u2192 exact trace + answer + receipt; verify {domain, problem, answer} \u2192 the judge's verdict + receipt; page_put {domain, key, text, verified:true}.",
+    "input_schema": {
+     "properties": {
+      "domain": {
+       "type": "string"
+      },
+      "op": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "op"
+     ],
+     "type": "object"
+    }
+   },
+   {
+    "name": "server_shard_put",
+    "description": "Store a note in the shared memory any harness can search later. Input: {text, tags?, source?}.",
+    "input_schema": {
+     "properties": {
+      "source": {
+       "type": "string"
+      },
+      "tags": {
+       "items": {
+        "type": "string"
+       },
+       "type": "array"
+      },
+      "text": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "text"
+     ],
+     "type": "object"
+    }
+   },
+   {
+    "name": "server_mark",
+    "description": "Record an app happening in the Weaver field (kind=event): {target:'<app>/<area>', outcome?, weight?, detail?}. The omniring area field reads it; evidence only, never a trigger.",
+    "input_schema": {
+     "properties": {
+      "detail": {
+       "type": "object"
+      },
+      "outcome": {
+       "type": "string"
+      },
+      "target": {
+       "type": "string"
+      },
+      "weight": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "target"
+     ],
+     "type": "object"
+    }
+   },
+   {
+    "name": "server_session_recall",
+    "description": "Read back a past session's messages: {session} or {q} (best-matching session), limit?.",
+    "input_schema": {
+     "properties": {
+      "limit": {
+       "type": "integer"
+      },
+      "q": {
+       "type": "string"
+      },
+      "session": {
+       "type": "string"
+      }
+     },
+     "type": "object"
+    }
+   }
+  ],
+  "current": [
+   {
+    "name": "sovereign-kernel_fleet_kb_search",
+    "description": "Runs `fleet-kb search <query>` against system-docs.db (local FTS5 documentation search).",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string",
+       "description": "Search query"
+      }
+     },
+     "required": [
+      "query"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "sovereign-kernel_fleet_exec",
+    "description": "Batch file/shell/sql ops in one call through bin/fleet-exec (write scopes, audit, field marks). operations: [{type:'bash',command,timeout_s?} | {type:'read',path} | {type:'write',path,content} | {type:'patch',path,old_string,new_string} | {type:'sql',database,query,mode?}]. mode: 'parallel'|'sequential'.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "operations": {
+       "oneOf": [
+        {
+         "type": "array",
+         "minItems": 1,
+         "items": {
+          "type": "object",
+          "properties": {
+           "type": {
+            "type": "string",
+            "enum": [
+             "bash",
+             "read",
+             "write",
+             "patch",
+             "sql",
+             "db_exec",
+             "omni_sql",
+             "glob",
+             "grep",
+             "fix_json"
+            ],
+            "description": "Operation type \u2014 bash, read, write, patch, sql, glob (find files), grep (search contents)."
+           },
+           "pattern": {
+            "type": "string",
+            "description": "type=glob: glob like '**/*.py'; type=grep: regex."
+           },
+           "glob": {
+            "type": "string",
+            "description": "type=grep only: restrict to files matching this glob."
+           },
+           "allow_destructive": {
+            "type": "boolean",
+            "description": "Only when J approved it: lets an op the Omnitool guard blocks (rm -rf of protected root\u2026"
+           },
+           "command": {
+            "type": "string",
+            "description": "Shell command to execute (type=bash)."
+           },
+           "path": {
+            "type": "string",
+            "description": "File path (type=read/write)."
+           },
+           "content": {
+            "type": "string",
+            "description": "File content to write (type=write). Required. write/patch targets must be under ~/ai-st\u2026"
+           },
+           "diff": {
+            "type": "string",
+            "description": "Unified diff text (type=patch)."
+           },
+           "target": {
+            "type": "string",
+            "description": "Explicit patch target path (type=patch, optional). Defaults to the path implied by the \u2026"
+           },
+           "database": {
+            "type": "string",
+            "description": "DB alias or path (type=sql). Optional: defaults to \"dispatch\"."
+           },
+           "mode": {
+            "type": "string",
+            "enum": [
+             "read_only",
+             "read_write"
+            ],
+            "description": "SQL execution mode (default: read_only). Any INSERT/UPDATE/DELETE/DDL needs mode:\"read_\u2026"
+           },
+           "format": {
+            "type": "boolean",
+            "description": "type=write only: run the language formatter after writing (default false: bytes written\u2026"
+           },
+           "timeout_ms": {
+            "type": "number",
+            "description": "Per-operation timeout override in ms. Overrides payload-level timeout_s for this specif\u2026"
+           },
+           "detach": {
+            "type": "boolean",
+            "description": "type=bash only: fire-and-forget. Spawns via a detached process and returns immediately."
+           },
+           "log_path": {
+            "type": "string",
+            "description": "type=bash + detach/on_timeout=detach: where to redirect output (default: auto-named /tm\u2026"
+           },
+           "on_timeout": {
+            "type": "string",
+            "enum": [
+             "detach"
+            ],
+            "description": "type=bash only: if the command is still running at timeout_s, dont kill it \u2014 leave it r\u2026"
+           },
+           "on_failure": {
+            "type": "string",
+            "enum": [
+             "abort",
+             "continue"
+            ],
+            "description": "Per-operation failure policy. 'abort': a failure halts the remaining ops. 'continue' or\u2026"
+           }
+          },
+          "required": [
+           "type"
+          ],
+          "additionalProperties": true
+         }
+        },
+        {
+         "type": "object"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Array of operation objects, or single operation object."
+      },
+      "tasks": {
+       "type": "array",
+       "items": {
+        "type": "object"
+       },
+       "description": "Alias for operations (common model hallucination)."
+      },
+      "ops": {
+       "type": "array",
+       "items": {
+        "type": "object"
+       },
+       "description": "Alias for operations."
+      },
+      "commands": {
+       "type": "array",
+       "items": {
+        "type": "object"
+       },
+       "description": "Alias for operations."
+      },
+      "concurrency": {
+       "type": "string",
+       "enum": [
+        "parallel",
+        "sequential",
+        "auto"
+       ],
+       "description": "'parallel': all ops at once, no dependency checking. 'sequential': one at a time. 'auto\u2026"
+      },
+      "stop_on_error": {
+       "type": "boolean",
+       "description": "Sequential mode only: halt on first failure"
+      },
+      "detach": {
+       "type": "boolean",
+       "description": "Whole-batch background: run the ENTIRE operations list (in the given concurrency mode \u2014\u2026"
+      },
+      "log_path": {
+       "type": "string",
+       "description": "With top-level detach: where to redirect the whole batch's combined output (default: an\u2026"
+      },
+      "timeout_ms": {
+       "type": "number",
+       "description": "Overrides the outer transport timeout for this whole call (default 60000ms). Raise this\u2026"
+      }
+     },
+     "additionalProperties": true
+    }
+   },
+   {
+    "name": "sovereign-kernel_read",
+    "description": "Read a file. Args: path (absolute), offset (line, default 0), max_lines (default 200). Returns {ok,data,error}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string"
+      },
+      "offset": {
+       "type": "number"
+      },
+      "max_lines": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "path"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "sovereign-kernel_read_many",
+    "description": "Read several files in one call. Args: paths (array of absolute paths, max 20). Returns {ok,data:[{path,ok,content|error}]}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "paths": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      }
+     },
+     "required": [
+      "paths"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "sovereign-kernel_write",
+    "description": "Create/overwrite a file (write-scoped: ai-stack, projects, Obsidian, .config/opencode, /tmp ...). Args: path, content. Returns {ok,data,error}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string"
+      },
+      "content": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "path",
+      "content"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "sovereign-kernel_edit",
+    "description": "Replace old_string with new_string in a file. old_string must occur EXACTLY ONCE (else error, nothing written). Args: path, old_string, new_string.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string"
+      },
+      "old_string": {
+       "type": "string"
+      },
+      "new_string": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "path",
+      "old_string",
+      "new_string"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "sovereign-kernel_grep",
+    "description": "Search file contents (ripgrep regex). Args: pattern, path (default ai-stack), glob (optional file filter like '*.py'). Returns {ok,data:'file:line:text' lines}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "pattern": {
+       "type": "string"
+      },
+      "path": {
+       "type": "string"
+      },
+      "glob": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "pattern"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "sovereign-kernel_glob",
+    "description": "Find files by glob (ripgrep). Args: pattern (e.g. '**/*.py'), path (default ai-stack). Returns {ok,data:[paths]}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "pattern": {
+       "type": "string"
+      },
+      "path": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "pattern"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "sovereign-kernel_bash",
+    "description": "Run one shell command via the omnitool. Args: command, timeout_s (default 30), cwd (optional). Returns {ok (exit 0), data:{exit_code,stdout,stderr}}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "command": {
+       "type": "string"
+      },
+      "timeout_s": {
+       "type": "number"
+      },
+      "cwd": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "command"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "sovereign-kernel_sql",
+    "description": "Run SQL on a fleet SQLite db. Args: database (path), query, mode ('read_only' default | 'read_write'). Returns {ok,data:rows}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "database": {
+       "type": "string"
+      },
+      "query": {
+       "type": "string"
+      },
+      "mode": {
+       "type": "string",
+       "enum": [
+        "read_only",
+        "read_write"
+       ]
+      }
+     },
+     "required": [
+      "database",
+      "query"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "sovereign-kernel_web_fetch",
+    "description": "Fetch a URL as text. Args: url. Returns {ok,data:text}.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "url": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "url"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "sovereign-kernel_board_query",
+    "description": "Query dispatch.db task queue: counts by status (staged/approved/needs_review/done), recent completions, and lane balance. Replaces manual sqlite3 queries on dispatch.db.",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "detail": {
+       "type": "string",
+       "enum": [
+        "summary",
+        "full"
+       ],
+       "default": "summary"
+      },
+      "limit": {
+       "type": "number",
+       "default": 5,
+       "description": "Max tasks to return in summary mode"
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "omnid_fleet_exec",
+    "description": "Run bin/fleet-exec (the omnitool): a batch of bash/read/write/patch/sql/glob/grep operations, validated whole before anything runs. Input: {operations:[{type:'bash',command:'...'}, ...]}.",
+    "input_schema": {
+     "properties": {
+      "concurrency": {
+       "enum": [
+        "auto",
+        "parallel",
+        "sequential"
+       ],
+       "type": "string"
+      },
+      "cwd": {
+       "type": "string"
+      },
+      "operations": {
+       "items": {
+        "type": "object"
+       },
+       "type": "array"
+      }
+     },
+     "required": [
+      "operations"
+     ],
+     "type": "object"
+    }
+   },
+   {
+    "name": "omnid_embed",
+    "description": "Local text embeddings (no cloud): nomic-embed-text v1.5 (768-d) or BitNet-embedding-270M (640-d).",
+    "input_schema": {
+     "properties": {
+      "kind": {
+       "enum": [
+        "document",
+        "query",
+        "raw"
+       ],
+       "type": "string"
+      },
+      "model": {
+       "enum": [
+        "nomic",
+        "bitnet270m"
+       ],
+       "type": "string"
+      },
+      "texts": {
+       "items": {
+        "type": "string"
+       },
+       "type": "array"
+      }
+     },
+     "required": [
+      "texts"
+     ],
+     "type": "object"
+    }
+   },
+   {
+    "name": "omnid_ring_heads",
+    "description": "Query the fleet's ring heads (ring_headd): {health:true} | {heads:true} | {head, text|texts}.",
+    "input_schema": {
+     "type": "object"
+    }
+   },
+   {
+    "name": "omnid_shard_search",
+    "description": "Search the fleet's memory (Claude Code sessions, the vault, stored notes): full-text + local nomic vectors, fused; every hit names its store, id and source. Input: {q, stores?:['sessions','vault','notes'], k?}.",
+    "input_schema": {
+     "properties": {
+      "k": {
+       "type": "integer"
+      },
+      "q": {
+       "type": "string"
+      },
+      "stores": {
+       "items": {
+        "type": "string"
+       },
+       "type": "array"
+      }
+     },
+     "required": [
+      "q"
+     ],
+     "type": "object"
+    }
+   },
+   {
+    "name": "omnid_arc",
+    "description": "The arc reactor (ARC stage F): exact engines (every reasoning generator), independent judges, pages and receipts. Input: {op: solve|verify|catalog|page_get|page_put|address|decode|ping, ...}: solve {domain, problem? | i, seed, level} \u2192 exact trace + answer + receipt; verify {domain, problem, answer} \u2192 the judge's verdict + receipt; page_put {domain, key, text, verified:true}.",
+    "input_schema": {
+     "properties": {
+      "domain": {
+       "type": "string"
+      },
+      "op": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "op"
+     ],
+     "type": "object"
+    }
+   },
+   {
+    "name": "omnid_shard_put",
+    "description": "Store a note in the shared memory any harness can search later. Input: {text, tags?, source?}.",
+    "input_schema": {
+     "properties": {
+      "source": {
+       "type": "string"
+      },
+      "tags": {
+       "items": {
+        "type": "string"
+       },
+       "type": "array"
+      },
+      "text": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "text"
+     ],
+     "type": "object"
+    }
+   },
+   {
+    "name": "omnid_mark",
+    "description": "Record an app happening in the Weaver field (kind=event): {target:'<app>/<area>', outcome?, weight?, detail?}. The omniring area field reads it; evidence only, never a trigger.",
+    "input_schema": {
+     "properties": {
+      "detail": {
+       "type": "object"
+      },
+      "outcome": {
+       "type": "string"
+      },
+      "target": {
+       "type": "string"
+      },
+      "weight": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "target"
+     ],
+     "type": "object"
+    }
+   },
+   {
+    "name": "omnid_session_recall",
+    "description": "Read back a past session's messages: {session} or {q} (best-matching session), limit?.",
+    "input_schema": {
+     "properties": {
+      "limit": {
+       "type": "integer"
+      },
+      "q": {
+       "type": "string"
+      },
+      "session": {
+       "type": "string"
+      }
+     },
+     "type": "object"
+    }
+   }
+  ],
+  "codemode": [
+   {
+    "name": "list_mcp_resources",
+    "description": "list_mcp_resources",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "server": {
+       "type": "string",
+       "description": "Optional MCP server name. When omitted, lists resources provided by every connected server."
+      }
+     },
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "list_mcp_resource_templates",
+    "description": "list_mcp_resource_templates",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "server": {
+       "type": "string",
+       "description": "Optional MCP server name. When omitted, lists resources provided by every connected server."
+      }
+     },
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "read_mcp_resource",
+    "description": "read_mcp_resource",
+    "input_schema": {
+     "type": "object",
+     "properties": {
+      "server": {
+       "type": "string",
+       "description": "Optional MCP server name. When omitted, lists resources provided by every connected server."
+      }
+     },
+     "additionalProperties": false
+    }
+   }
+  ]
+ }
+}

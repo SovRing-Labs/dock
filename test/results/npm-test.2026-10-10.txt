@@ -1,0 +1,197 @@
+TAP version 13
+# Subtest: stripSchemaDescriptions removes prose but keeps every callable structure
+ok 1 - stripSchemaDescriptions removes prose but keeps every callable structure
+  ---
+  duration_ms: 4.74107
+  type: 'test'
+  ...
+# Subtest: the catalog stores the ORIGINAL schema, never the thinned one
+ok 2 - the catalog stores the ORIGINAL schema, never the thinned one
+  ---
+  duration_ms: 1.28509
+  type: 'test'
+  ...
+# Subtest: a search hit returns a callable schema in every mode
+ok 3 - a search hit returns a callable schema in every mode
+  ---
+  duration_ms: 1.757757
+  type: 'test'
+  ...
+# Subtest: dock's own tools are never thinned
+ok 4 - dock's own tools are never thinned
+  ---
+  duration_ms: 0.365515
+  type: 'test'
+  ...
+# Subtest: abstention survives the plugin path
+ok 5 - abstention survives the plugin path
+  ---
+  duration_ms: 0.828904
+  type: 'test'
+  ...
+# Subtest: an empty query and an empty catalog are answered, not crashed on
+ok 6 - an empty query and an empty catalog are answered, not crashed on
+  ---
+  duration_ms: 0.442264
+  type: 'test'
+  ...
+# Subtest: an unknown mode is rejected rather than silently defaulted
+ok 7 - an unknown mode is rejected rather than silently defaulted
+  ---
+  duration_ms: 1.008773
+  type: 'test'
+  ...
+# Subtest: compactDescription keeps the first sentence and respects the limit
+ok 8 - compactDescription keeps the first sentence and respects the limit
+  ---
+  duration_ms: 0.306926
+  type: 'test'
+  ...
+# Subtest: the registered dock-bridge.ts loads and wires up
+ok 9 - the registered dock-bridge.ts loads and wires up
+  ---
+  duration_ms: 165.096532
+  type: 'test'
+  ...
+# GATE PASS  30 upstream tools reachable -> 2 exposed, 205 tok (naive enumeration would be 3339 tok)
+# Subtest: gate: client-facing surface is constant regardless of upstream count
+ok 10 - gate: client-facing surface is constant regardless of upstream count
+  ---
+  duration_ms: 404.714844
+  type: 'test'
+  ...
+# Subtest: initialize and tools/list speak real MCP
+ok 11 - initialize and tools/list speak real MCP
+  ---
+  duration_ms: 66.563016
+  type: 'test'
+  ...
+# Subtest: ABSTENTION: nothing relevant returns empty rather than top-k
+ok 12 - ABSTENTION: nothing relevant returns empty rather than top-k
+  ---
+  duration_ms: 110.560981
+  type: 'test'
+  ...
+# Subtest: ABSTENTION: stopwords alone do not manufacture false confidence
+ok 13 - ABSTENTION: stopwords alone do not manufacture false confidence
+  ---
+  duration_ms: 0.651751
+  type: 'test'
+  ...
+# Subtest: AMBIGUITY is flagged, not withheld
+ok 14 - AMBIGUITY is flagged, not withheld
+  ---
+  duration_ms: 0.450145
+  type: 'test'
+  ...
+# Subtest: a clear query is confident and unambiguous
+ok 15 - a clear query is confident and unambiguous
+  ---
+  duration_ms: 0.356457
+  type: 'test'
+  ...
+# Subtest: call_tool round-trips to the right upstream
+ok 16 - call_tool round-trips to the right upstream
+  ---
+  duration_ms: 110.962679
+  type: 'test'
+  ...
+# Subtest: call_tool reports a clear error for an unknown server
+ok 17 - call_tool reports a clear error for an unknown server
+  ---
+  duration_ms: 58.38285
+  type: 'test'
+  ...
+# Subtest: call_tool rejects a malformed unqualified name
+ok 18 - call_tool rejects a malformed unqualified name
+  ---
+  duration_ms: 61.631163
+  type: 'test'
+  ...
+# Subtest: dock exposes nothing beyond the two meta-tools
+ok 19 - dock exposes nothing beyond the two meta-tools
+  ---
+  duration_ms: 52.682915
+  type: 'test'
+  ...
+# Subtest: a dead upstream is reported, not crashed through
+ok 20 - a dead upstream is reported, not crashed through
+  ---
+  duration_ms: 4.802194
+  type: 'test'
+  ...
+# Subtest: STEM: a verb matches its inflection, which is why stage 2 exists
+ok 21 - STEM: a verb matches its inflection, which is why stage 2 exists
+  ---
+  duration_ms: 3.504504
+  type: 'test'
+  ...
+# Subtest: STEM: plurals and -ed inflect to their base
+ok 22 - STEM: plurals and -ed inflect to their base
+  ---
+  duration_ms: 0.503119
+  type: 'test'
+  ...
+# Subtest: STEM guards: words that must NOT be stemmed
+ok 23 - STEM guards: words that must NOT be stemmed
+  ---
+  duration_ms: 0.179472
+  type: 'test'
+  ...
+# Subtest: SYNONYM: a query verb reaches a document that only uses its synonym
+ok 24 - SYNONYM: a query verb reaches a document that only uses its synonym
+  ---
+  duration_ms: 0.816102
+  type: 'test'
+  ...
+# Subtest: SYNONYM expansion must not inflate the evidence ceiling
+ok 25 - SYNONYM expansion must not inflate the evidence ceiling
+  ---
+  duration_ms: 1.846685
+  type: 'test'
+  ...
+# Subtest: SYNONYM expansion is symmetric, not head-to-tail
+ok 26 - SYNONYM expansion is symmetric, not head-to-tail
+  ---
+  duration_ms: 0.285184
+  type: 'test'
+  ...
+# Subtest: SYNONYM closure is transitive across a class
+ok 27 - SYNONYM closure is transitive across a class
+  ---
+  duration_ms: 0.388473
+  type: 'test'
+  ...
+# Subtest: SYNONYM expansion cannot rescue an irrelevant query
+ok 28 - SYNONYM expansion cannot rescue an irrelevant query
+  ---
+  duration_ms: 0.222325
+  type: 'test'
+  ...
+# Subtest: STEMING must not fuse two unrelated tools into an ambiguous tie
+ok 29 - STEMING must not fuse two unrelated tools into an ambiguous tie
+  ---
+  duration_ms: 0.571749
+  type: 'test'
+  ...
+# Subtest: a clear query still clears full evidence coverage
+ok 30 - a clear query still clears full evidence coverage
+  ---
+  duration_ms: 0.6664
+  type: 'test'
+  ...
+# Subtest: evidence is reported as coverage, never above 100%
+ok 31 - evidence is reported as coverage, never above 100%
+  ---
+  duration_ms: 0.817199
+  type: 'test'
+  ...
+1..31
+# tests 31
+# suites 0
+# pass 31
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1075.791813

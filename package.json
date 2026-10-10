@@ -1,0 +1,55 @@
+{
+  "name": "dock",
+  "version": "0.1.0",
+  "description": "One MCP server for any number of MCP servers. Clients pay a constant context cost no matter how many are docked, and selection can abstain.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SovRing-Labs/dock"
+  },
+  "homepage": "https://github.com/SovRing-Labs/dock#readme",
+  "bugs": {
+    "url": "https://github.com/SovRing-Labs/dock/issues"
+  },
+  "bin": {
+    "dockd": "src/dockd.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "test:full": "node --test test/*.test.js",
+    "probe:stdio": "node test/harness/stdio-probe.mjs",
+    "probe:selection": "node test/harness/selection-probe.mjs",
+    "probe:codemode": "node test/harness/codemode-probe.mjs /tmp/codemode-raw.json",
+    "bench:offline": "npm run bench:tokens && npm run bench:stage2 && npm run bench:bridge",
+    "bench:tokens": "python3 test/harness/codemode-tokens.py",
+    "bench:stage2": "node test/harness/stage2-bench.mjs",
+    "bench:bridge": "node test/harness/bridge-bench.mjs",
+    "bench:live": "npm run probe:codemode && npm run bench:tokens -- /tmp/codemode-raw.json && npm run bench:stage2 -- /tmp/codemode-raw.json && npm run bench:bridge -- /tmp/codemode-raw.json",
+    "start": "node src/dockd.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "llm",
+    "agents",
+    "tools",
+    "context-window",
+    "abstention",
+    "tool-selection"
+  ],
+  "files": [
+    "src",
+    "plugin",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "LICENSING.md",
+    "dock.example.json",
+    "test/GATES.md",
+    "test/harness"
+  ]
+}

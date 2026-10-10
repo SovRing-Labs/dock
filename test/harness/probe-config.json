@@ -1,0 +1,15 @@
+{
+  "//": "Drives dockd over real stdio against the test fixture server. Two upstreams with different capability vocabularies, so a search can be checked for hitting the right one.",
+  "upstreams": [
+    { "name": "files",
+      "command": "node",
+      "args": ["test/fixture-server.js"],
+      "env": { "FIXTURE_TOOLS": "5", "FIXTURE_PREFIX": "files",
+               "FIXTURE_CAPABILITIES": "reading,writing,listing,stat,copy" } },
+    { "name": "net",
+      "command": "node",
+      "args": ["test/fixture-server.js"],
+      "env": { "FIXTURE_TOOLS": "7", "FIXTURE_PREFIX": "net",
+               "FIXTURE_CAPABILITIES": "fetching,sending,receiving,streaming,tls" } }
+  ]
+}

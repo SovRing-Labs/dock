@@ -1,0 +1,39 @@
+note: no capture given; using the pinned snapshot
+      fixtures/live-catalog-2026-10-05.json
+      for live state: node test/harness/codemode-probe.mjs /tmp/codemode-raw.json
+dock-bridge measurement — client-facing tool payload
+
+  tools: 20 live tools (sovereign-kernel + omnid)
+
+  config                                    bytes   vs baseline
+  (no plugin)                                9185   —
+  mode=off  (compact descriptions)           9185   0.0%
+  mode=safe (strip schema prose)             6856   -25.4%
+  mode=thin (opaque schemas)                 5414   -41.1%
+
+  reference: dockd as an MCP server exposes 2 tools and measures 205 tok
+  (test/GATES.md). The hook cannot REMOVE a tool, so it cannot reach that
+
+  concentration: sovereign-kernel_fleet_exec alone is 3488 bytes of schema —
+  38% of the entire baseline payload.
+  the next four together: 874 bytes.
+
+  integrity check — dock_find_tool("read a file from disk")
+    top hit: sovereign-kernel_read
+    schema has properties: yes
+    description is full text: yes
+
+  floor for any hook-only approach: ~401 bytes of tool names alone.
+  thin mode reaches 5414 bytes, so the hook has 5013 bytes
+  left above the unavoidable floor. dockd reaches it by removing tools
+
+  abstention through the plugin:
+    OK   book me a flight                   refused
+    OK   what is the weather tomorrow       refused
+    OK   order two pizzas                   refused
+
+  VERDICT
+    PASS  safe mode -25.4%, thin mode -41.1%,
+          search still abstains, and returned schemas remain callable.
+          NOTE: whether a THINNED schema survives real call validation is
+          still unproven in a live session — hence thin defaults to off.

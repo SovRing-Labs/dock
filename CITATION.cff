@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "dock: one MCP server for any number of MCP servers, with abstaining tool search"
+version: 0.1.0
+abstract: "An MCP server that fronts N MCP servers behind two meta-tools (search_tools, call_tool) so client context cost is constant in server count. Tool search abstains instead of returning a least-bad top-k. Zero runtime dependencies. Published as prior art."
+authors:
+  - family-names: "De Santiago"
+    given-names: "Juan Carlos"
+license: Apache-2.0
+repository-code: "https://github.com/SovRing-Labs/dock"
+keywords: [MCP, tool search, context cost, abstention, agents]

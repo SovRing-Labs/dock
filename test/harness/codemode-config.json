@@ -1,0 +1,31 @@
+{
+  "//": "Code-mode probe config: the live MCP servers opencode connects to, plus the code-mode tool taxonomy read out of the shipped binary. builtinTokenCost is the additive constant for opencode's builtin tools; it is identical in all three arms so it cancels in the comparison. Measured value is filled in by codemode-tokens.py and recorded here.",
+  "protocolVersion": "2025-06-18",
+  "mcpServers": {
+    "sovereign-kernel": [
+      "node",
+      "<path-to-tarsus>/src/index.js"
+    ],
+    "omnid": [
+      "<path-to-omnid>/omnid",
+      "mcp"
+    ]
+  },
+  "builtinTokenCost": null,
+  "builtinTokenCostNote": "OpenCode's builtin tool schemas live in the binary, not on disk. Measured as: fleet residual 2755 tok/turn (20 tools, 2026-10-05) minus the current-arm MCP schema tax counted here.",
+  "codeModeResourceTools": [
+    "list_mcp_resources",
+    "list_mcp_resource_templates",
+    "read_mcp_resource"
+  ],
+  "resourceMetaSchema": {
+    "type": "object",
+    "properties": {
+      "server": {
+        "type": "string",
+        "description": "Optional MCP server name. When omitted, lists resources provided by every connected server."
+      }
+    },
+    "additionalProperties": false
+  }
+}
