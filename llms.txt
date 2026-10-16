@@ -1,0 +1,20 @@
+# dock
+
+> One MCP server for any number of MCP servers.
+
+Setup: `git clone --depth 1 https://github.com/SovRing-Labs/dock && cd dock && npm test` (expect: # fail 0).
+Licence: Apache-2.0.
+
+## Docs
+- [README.md](https://raw.githubusercontent.com/SovRing-Labs/dock/main/README.md)
+- [DOSSIER.md](https://raw.githubusercontent.com/SovRing-Labs/dock/main/DOSSIER.md)
+- [TECHNICAL-DISCLOSURE.md](https://raw.githubusercontent.com/SovRing-Labs/dock/main/TECHNICAL-DISCLOSURE.md)
+- [PROVENANCE.md](https://raw.githubusercontent.com/SovRing-Labs/dock/main/PROVENANCE.md)
+- [LICENSING.md](https://raw.githubusercontent.com/SovRing-Labs/dock/main/LICENSING.md)
+- [CITATION.cff](https://raw.githubusercontent.com/SovRing-Labs/dock/main/CITATION.cff)
+- [AGENTS.md](https://raw.githubusercontent.com/SovRing-Labs/dock/main/AGENTS.md)
+- [STATUS.md](https://raw.githubusercontent.com/SovRing-Labs/dock/main/STATUS.md)
+- [suite.json](https://raw.githubusercontent.com/SovRing-Labs/dock/main/suite.json)
+
+## Optional
+- [SovRing umbrella (all repos, MCP setup)](https://github.com/SovRing-Labs/SovRing)
