@@ -2,6 +2,8 @@
 
 For coding assistants (and people) setting this repository up. Plain steps; every command runs from the repo root.
 
+**Status: pre-alpha, under development.** Interfaces, numbers and file layout can change without notice. Read `STATUS.md` first: what works today (each line names its test and evidence file), what is not yet tested, the known failures and the corrections.
+
 ## What it is
 One MCP server for any number of MCP servers. Clients pay a constant context cost no matter how many are docked. Dock ten upstream servers. Your model still sees two tools.
 
@@ -12,11 +14,12 @@ git clone --depth 1 https://github.com/SovRing-Labs/dock && cd dock
 npm test   # expect: # fail 0
 ```
 Needs: node>=18.
+Whole suite instead: `bash install.sh --no-gui` (python check → venv → every runnable `suite.json` test, headless; without `--no-gui` it then opens the local results page on 127.0.0.1).
 Measured: 18.6s on a fresh clone (Intel i5-8365U laptop, 2026-10-16, exit 0).
 Note: package.json asks for Node 22+; the test suite also passed on Node 18.19 (census 2026-10-16).
 
 ## What the tests mean
-`suite.json` lists every claim this repository makes with its verify command, the expected output, what passing means, how the number was obtained and how to use it in your own work (being written). `STATUS.md` says what works today, what is not yet tested and the known failures; the umbrella's `STATUS.md` has one row per repository.
+`suite.json` lists every claim this repository makes with its verify command, the expected output, what passing means, how the number was obtained and how to use it in your own work (7 tests, in `suite.json` at the repository root). `STATUS.md` says what works today, what is not yet tested and the known failures; the umbrella's `STATUS.md` has one row per repository.
 
 ## Where the evidence is
 - `DOSSIER.md` — history, metrics and limits

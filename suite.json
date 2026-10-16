@@ -1,0 +1,169 @@
+{
+  "_about": {
+    "repo": "dock",
+    "url": "https://github.com/SovRing-Labs/dock",
+    "one_line": "One MCP server for any number of MCP servers: clients see two tools (search_tools, call_tool) at a constant token cost, and tool search abstains when nothing is relevant. Zero dependencies.",
+    "quicktest": "node --test test/*.test.js",
+    "quicktest_s": 40,
+    "licence": "Apache-2.0 (LICENSE, LICENSING.md)",
+    "status_file": "STATUS.md",
+    "generated": "2026-10-16",
+    "schema": 1,
+    "source": "README.md, TECHNICAL-DISCLOSURE.md, DOSSIER.md, test/GATES.md, test/results/*.2026-10-10.txt, package.json scripts"
+  },
+  "tests": [
+    {
+      "id": "D1",
+      "title": "Unit and gate suite: 31 tests, 30 pass + 1 documented skip on Node 18",
+      "claim": "npm test: 31 tests across gate.test.js, selection.test.js and bridge.test.js; 31 pass on Node >= 22; on Node 18 30 pass and 1 skips (the dock-bridge load test needs --experimental-strip-types)",
+      "kind": "run",
+      "verify": "out=$(node --test test/*.test.js 2>&1); echo \"$out\" | grep -E '^# (pass|fail|skipped)'; echo \"$out\" | grep -q '^# fail 0' && echo \"$out\" | grep -qE '^# pass (30|31)$'",
+      "expect": "# fail 0 and # pass 30 (Node 18, skipped 1) or # pass 31 (Node >= 22, skipped 0)",
+      "evidence": [
+        "test/results/npm-test.2026-10-10.txt",
+        "test/GATES.md"
+      ],
+      "runtime_s": 40,
+      "needs": [
+        "node >= 18 (>= 22 for the full 31)"
+      ],
+      "cpu_flags": [],
+      "what_it_means": "Thirty-one small node:test cases run the whole dock server in-process against a fixture upstream: MCP handshake, the two meta-tools, abstention, ambiguity flagging, call routing, dead-upstream isolation, stemming and synonym guards, and the dock-bridge plugin core. Passing proves those behaviours still hold in the version you cloned. It does not prove anything about speed, about real third-party MCP servers, or about clients other than the fixture client. On Node 18 one test skips on purpose and GATES.md says so; a green run there is 30 pass, 1 skip, not 31.",
+      "how_we_got_it": "`npm test` (= `node --test test/*.test.js`) from the repo root; the saved run is test/results/npm-test.2026-10-10.txt (31 ok, 0 fail, 0 skipped, on a Node that supports strip-types, i.e. >= 22). The Node 18 skip behaviour is described in test/GATES.md. The machine is described only as the author's laptop CPU in TECHNICAL-DISCLOSURE.md; the exact CPU is not recorded in the repo.",
+      "use_in_your_work": "Run it after you change any selection or routing code if you fork dock, or before you put dock in front of your own MCP servers, to know the baseline still holds. The test names in test/GATES.md double as a checklist of what a context-saving MCP front must pin.",
+      "honest_limits": "The skipped test guards the worst failure (a plugin whose default export is a Promise registers zero hooks silently); it only runs on Node >= 22. About 33 s on Node 18 on the reviewer's machine, most of it in one test.",
+      "corrections": []
+    },
+    {
+      "id": "D2",
+      "title": "Constant-surface gate: 30 upstream tools behind 2 exposed, 205 tokens",
+      "claim": "30 upstream tools reachable -> 2 exposed, 205 tok (naive enumeration would be 3339 tok); client-facing surface is exactly equal for 1 and 4 upstreams",
+      "kind": "run",
+      "verify": "node --test test/gate.test.js 2>&1 | grep -F 'GATE PASS  30 upstream tools reachable -> 2 exposed, 205 tok'",
+      "expect": "GATE PASS  30 upstream tools reachable -> 2 exposed, 205 tok (naive enumeration would be 3339 tok)",
+      "evidence": [
+        "test/results/npm-test.2026-10-10.txt",
+        "test/GATES.md"
+      ],
+      "runtime_s": 15,
+      "needs": [
+        "node >= 18"
+      ],
+      "cpu_flags": [],
+      "what_it_means": "The gate docks one upstream server (4 tools) and then four (30 tools), measures the token cost of the tool list the client is shown, and requires the two to be exactly equal, to expose exactly two tools, and to cost less than a tenth of listing all 30. Passing proves the client-visible cost is flat in the number of docked servers for this fixture. It does not show that a model picks the right tool through search_tools in a real session, nor that 205 tokens holds for tools with very long schemas (the two meta-tool schemas are fixed, so it should, but it is measured only on this fixture).",
+      "how_we_got_it": "test/gate.test.js builds fixture upstreams (test/fixture-server.js), starts dockd in-process, and counts tokens at about 4 bytes per token. Saved output: test/results/npm-test.2026-10-10.txt line 'GATE PASS  30 upstream tools reachable -> 2 exposed, 205 tok (naive enumeration would be 3339 tok)'. Bars were written in test/GATES.md before the harness.",
+      "use_in_your_work": "If your agent client pays for every connected MCP server's tool list on every turn, this is the property to measure on your own setup: add servers and watch whether the per-turn tool tax moves. Use the gate test as a template for an assertion in your own CI.",
+      "honest_limits": "Fixture catalog of 30 tools; catalogs above 30 tools and search_tools latency are listed as not measured (TECHNICAL-DISCLOSURE.md section 6).",
+      "corrections": []
+    },
+    {
+      "id": "D3",
+      "title": "Abstention, ambiguity flag and failure isolation tests pass (saved log)",
+      "claim": "dock returns abstained:true instead of a least-bad top-k for nothing-relevant queries (tests 12, 13), flags ambiguity (14), and reports a dead upstream instead of crashing (20)",
+      "kind": "file",
+      "verify": "f=test/results/npm-test.2026-10-10.txt; test $(grep -cE '^ok (12|13|14|20) - ' $f) = 4 && grep -E '^ok (12|13|14|20) - ' $f",
+      "expect": "four lines: ok 12 ABSTENTION, ok 13 ABSTENTION stopwords, ok 14 AMBIGUITY, ok 20 dead upstream",
+      "evidence": [
+        "test/results/npm-test.2026-10-10.txt"
+      ],
+      "runtime_s": 1,
+      "needs": [
+        "python3 or bash/grep"
+      ],
+      "cpu_flags": [],
+      "what_it_means": "The saved test log shows the four tests that pin dock's distinctive behaviour as passing: an off-topic query returns an empty result with abstained true, stopwords alone cannot create confidence, two equally good tools both come back flagged ambiguous, and a dead upstream is reported while the rest keep working. Passing here proves the committed log says so; D1 re-runs the same tests live. It does not show that abstention thresholds (top/ceiling < 0.2) suit your tool catalog.",
+      "how_we_got_it": "Extracted from the TAP output of `npm test` saved on 2026-10-10 in test/results/npm-test.2026-10-10.txt (tests 12, 13, 14, 20 of 31). Harness: test/gate.test.js.",
+      "use_in_your_work": "Whenever a model must not act on a weak match (tool choice, retrieval, routing), an explicit abstain result is safer than a ranked list. These tests show how to assert that contract.",
+      "honest_limits": "Lexical BM25 only; semantic selection is on the roadmap, not claimed.",
+      "corrections": []
+    },
+    {
+      "id": "D4",
+      "title": "Stage-2 selection A/B: morphology recall 3/5 -> 5/5, no leakage",
+      "claim": "Stage 2 (stemmer + synonym classes) on a pinned 20-tool catalog: baseline recall 8/8 -> 8/8, morphology/synonym recall 3/5 -> 5/5, abstention leakage 0/5 -> 0/5",
+      "kind": "run",
+      "verify": "node test/harness/stage2-bench.mjs 2>&1 | grep -E 'stage 1 8/8   stage 2 8/8|stage 1 3/5   stage 2 5/5|stage 1 leaked 0/5   stage 2 leaked 0/5|PASS  baseline held'",
+      "expect": "stage 1 8/8   stage 2 8/8; stage 1 3/5   stage 2 5/5; leaked 0/5 both; PASS baseline held (+0), morph/synonym recall +2 (3->5/5), no new leakage (0/5)",
+      "evidence": [
+        "test/results/stage2-bench.2026-10-10.txt",
+        "test/harness/fixtures/live-catalog-2026-10-05.json"
+      ],
+      "runtime_s": 3,
+      "needs": [
+        "node >= 18"
+      ],
+      "cpu_flags": [],
+      "what_it_means": "Eight ordinary asks and five word-form or synonym asks are run through the first-stage and second-stage selector on a frozen 20-tool catalog, and five off-topic asks check the selector still refuses. Passing proves the stemmer and synonym classes gained two answers (save a note -> write, fetched documents -> fetch) without losing any of the eight baseline answers and without answering nonsense. It does not show generalisation: the five morphology asks are the ones the stage was designed for, and the catalog is the author's own fleet of 20 tools.",
+      "how_we_got_it": "`node test/harness/stage2-bench.mjs` offline against the pinned snapshot test/harness/fixtures/live-catalog-2026-10-05.json; saved output test/results/stage2-bench.2026-10-10.txt (2026-10-10). Machine: the author's laptop CPU, exact model not recorded in the repo.",
+      "use_in_your_work": "The method is reusable: when you add recall features to any search or routing step, measure leakage on nonsense queries in the same bench, so a recall gain is not bought with confident wrong answers.",
+      "honest_limits": "Five test asks and one catalog; the bench measures leakage on five nonsense queries only. 'Not measured': catalogs above 30 tools.",
+      "corrections": []
+    },
+    {
+      "id": "D5",
+      "title": "dock-bridge plugin payload: safe -25.4 %, thin -41.1 % (thin off by default)",
+      "claim": "dock-bridge client-facing tool payload on 20 live tools: 9185 bytes baseline, mode=safe 6856 bytes (-25.4%), mode=thin 5414 bytes (-41.1%); search still abstains and returned schemas remain callable",
+      "kind": "run",
+      "verify": "node test/harness/bridge-bench.mjs 2>&1 | grep -E 'mode=off|mode=safe|mode=thin|PASS  safe mode'",
+      "expect": "mode=off 9185 0.0%; mode=safe 6856 -25.4%; mode=thin 5414 -41.1%; PASS safe mode -25.4%, thin mode -41.1%",
+      "evidence": [
+        "test/results/bridge-bench.2026-10-10.txt",
+        "test/harness/fixtures/live-catalog-2026-10-05.json"
+      ],
+      "runtime_s": 3,
+      "needs": [
+        "node >= 18"
+      ],
+      "cpu_flags": [],
+      "what_it_means": "The plugin shortens tool definitions in place (safe strips schema prose, thin makes schemas opaque) while the search catalog keeps the full originals. Passing proves the byte counts on the frozen 20-tool catalog and that dock_find_tool still returns the full, callable schema and still abstains. It does not prove a model calls a thinned tool correctly in a live session; the bench output itself says that is unproven, which is why thin is off by default.",
+      "how_we_got_it": "`node test/harness/bridge-bench.mjs` offline on the pinned snapshot; saved output test/results/bridge-bench.2026-10-10.txt (2026-10-10), author's laptop, CPU not recorded.",
+      "use_in_your_work": "A cheaper, in-process way to cut an opencode tool list when you cannot put a separate MCP front in the path. Measure your own catalog with the same bench by passing a capture file.",
+      "honest_limits": "The hook can rewrite a tool but cannot remove one, so it cannot reach dockd's constant 2-tool surface (205 tok). Only opencode is covered. Thin-mode call validation is unproven in a live session.",
+      "corrections": []
+    },
+    {
+      "id": "D6",
+      "title": "Honest negative: provider code mode is an empty surface for a tools-only fleet",
+      "claim": "code mode arm 3 tools / 169 tokens (-93.9%) vs current 20 tools / 2,653 tokens, but reachability is none: it drops all 20 schemas and its meta-tools need the resources capability, which tools-only servers do not declare",
+      "kind": "file",
+      "verify": "python3 -c \"import re;t=open('TECHNICAL-DISCLOSURE.md',encoding='utf-8').read();[print('found',s) for s in ('2,653','169 tokens','93.9%','empty surface') if s in t] ;assert all(s in t for s in ('2,653','169 tokens','93.9%','empty surface'))\"",
+      "expect": "found 2,653; found 169 tokens; found 93.9%; found empty surface",
+      "evidence": [
+        "TECHNICAL-DISCLOSURE.md",
+        "test/harness/codemode-tokens.py"
+      ],
+      "runtime_s": 1,
+      "needs": [
+        "python3"
+      ],
+      "cpu_flags": [],
+      "what_it_means": "The repo records that a cheaper-looking alternative (a provider's code mode) wins on token count on paper, but makes all 20 upstream tools unreachable on this fleet, so it is not a substitute for selection. Passing proves the disclosure states those numbers and the conclusion. It does not re-measure them: the disclosure marks this probe as not re-run.",
+      "how_we_got_it": "test/harness/codemode-probe.mjs (needs a live opencode session) captures raw output and test/harness/codemode-tokens.py counts tokens with tiktoken under o200k_base and cl100k_base. Recorded in TECHNICAL-DISCLOSURE.md section 5, marked (not re-run). No result file for it is committed under test/results.",
+      "use_in_your_work": "Before swapping in any 'cheaper' tool-surface mechanism, check reachability (can the model still call everything?) as well as token count.",
+      "honest_limits": "Not re-run for the repo release; depends on the opencode version and a tiktoken install, so it is not run here. Whether a resource-publishing fleet would make code mode a better choice is stated by the disclosure as a different case.",
+      "corrections": []
+    },
+    {
+      "id": "D7",
+      "title": "dock-bridge loads and registers hooks (needs Node >= 22)",
+      "claim": "the registered dock-bridge.ts loads and wires up (regression guard for a Promise default export that registers zero hooks silently)",
+      "kind": "external",
+      "verify": "node -e \"process.exit(+process.versions.node.split('.')[0]>=22?0:1)\" && node --test test/bridge.test.js 2>&1 | grep -E '^# (pass|fail|skipped)'",
+      "expect": "# pass 8, # fail 0, # skipped 0 on Node >= 22",
+      "evidence": [
+        "test/GATES.md",
+        "test/results/npm-test.2026-10-10.txt"
+      ],
+      "runtime_s": 10,
+      "needs": [
+        "node >= 22"
+      ],
+      "cpu_flags": [],
+      "what_it_means": "Loads the real plugin file with Node's experimental type stripping and checks it registers hooks. Passing proves the plugin entry point is not a silently-empty Promise. It does not prove the host (opencode) calls those hooks.",
+      "how_we_got_it": "test 9 of the saved npm-test log (ok 9 - the registered dock-bridge.ts loads and wires up); described in test/GATES.md. Needs --experimental-strip-types, available from Node 22.",
+      "use_in_your_work": "Pin a load test for any plugin whose failure mode is silent non-registration.",
+      "honest_limits": "External here because it cannot run on Node 18 (it returns early and reports a skip); D1 on Node >= 22 covers it.",
+      "corrections": []
+    }
+  ]
+}

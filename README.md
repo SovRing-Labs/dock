@@ -1,5 +1,11 @@
 # dock
 
+<!-- status-badges (REPO-ACCESS-C) -->
+[![status: pre-alpha (under development)](https://img.shields.io/badge/status-pre--alpha%20%28under%20development%29-orange)](STATUS.md) **Status: pre-alpha, under development** — what works today, what is untested and what failed: [`STATUS.md`](STATUS.md)
+
+[![defensive publication: DOI 10.5281/zenodo.23282779](https://img.shields.io/badge/defensive%20publication-DOI%2010.5281%2Fzenodo.23282779-blue)](https://doi.org/10.5281/zenodo.23282779) **Defensive publication:** [`TECHNICAL-DISCLOSURE.md`](TECHNICAL-DISCLOSURE.md) · DOI [10.5281/zenodo.23282779](https://doi.org/10.5281/zenodo.23282779)
+<!-- /status-badges -->
+
 **One MCP server for any number of MCP servers.** Clients pay a constant context cost no matter how many are docked.
 
 ```jsonc

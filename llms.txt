@@ -1,8 +1,9 @@
 # dock
 
-> One MCP server for any number of MCP servers.
+> One MCP server for any number of MCP servers: clients see two tools (search_tools, call_tool) at a constant token cost, and tool search abstains when nothing is relevant. Zero dependencies.
 
 Setup: `git clone --depth 1 https://github.com/SovRing-Labs/dock && cd dock && npm test` (expect: # fail 0).
+Status: pre-alpha, under development — read STATUS.md before relying on a number.
 Licence: Apache-2.0.
 
 ## Docs
